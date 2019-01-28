@@ -1,9 +1,9 @@
 .PHONY: default test clean
 default:
-	cd build/; make
+	cd build/; make -j
 
 test:
-	cd tests/build/; make
+	cd tests/build/; make -j
 
 clean:
 	cd build/; make clean

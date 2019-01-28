@@ -6,12 +6,12 @@ exec=test.out
 main=test.cpp 
 
 # Set compile options
-CXX=g++
+ifeq (, $(shell which ccache))
+	CXX=g++
+else
+	CXX=ccache g++
+endif
 CXXFLAGS+=-Wall -std=c++11 -g3 -fno-inline
-
-# Recipe
-$(exec): $(objects)
-	$(CXX) $(CXXFLAGS) -o $(TARGET_DIR)/$(exec) $(dir_obj)
 
 ## ------------------~~ Dividing Line ~~--------------------
 
@@ -32,17 +32,21 @@ TARGET_DIR=$(this_path)
 OBJECT_DIR=$(this_path)/build/.obj
 DEPEND_DIR=$(this_path)/build/.d
 
+# Recipe
+$(exec): $(objects)
+	$(CXX) $(CXXFLAGS) -o $(TARGET_DIR)/$(exec) $(dir_obj) $(TARFLAGS)
+
 
 # Includes
 $(shell mkdir -p $(DEPEND_DIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPEND_DIR)/$*.Td
 
-COMPILE.cc = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+COMPILE.cc = $(CXX) $(DEPFLAGS) $(CXXFLAGS) -c
 POSTCOMPILE = mv -f $(DEPEND_DIR)/$*.Td $(DEPEND_DIR)/$*.d
 OUTPUT_OPTION = -o $(OBJECT_DIR)/$@
 %.o : %.cpp
 %.o : %.cpp $(DEPEND_DIR)/%.d
-	@if ! [[ -d $(OBJECT_DIR) ]]; then mkdir $(OBJECT_DIR); fi
+	@mkdir -p $(OBJECT_DIR)
 	$(COMPILE.cc) $(OUTPUT_OPTION) $<
 	@$(POSTCOMPILE)
 
